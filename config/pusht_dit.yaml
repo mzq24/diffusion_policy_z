@@ -1,0 +1,99 @@
+# Dataset settings
+dataloader:
+  batch_size: 64
+  num_workers: 8
+  persistent_workers: false
+  pin_memory: true
+  shuffle: true
+
+# Horizon settings (这些会被policy直接访问)
+obs_horizon: 2
+pred_horizon: 16
+action_horizon: 8
+n_obs_steps: 2
+
+# EMA settings
+ema:
+  inv_gamma: 1.0
+  max_value: 0.9999
+  min_value: 0.0
+  power: 0.75
+  update_after_step: 0
+
+# Optimizer settings
+optimizer:
+  _target_: torch.optim.AdamW
+  betas:
+  - 0.95
+  - 0.999
+  eps: 1.0e-08
+  lr: 0.0001
+  weight_decay: 1.0e-06
+
+# Shape meta
+shape_meta:
+  action:
+    shape:
+    - 2
+  obs:
+    agent_pos:
+      shape:
+      - 2
+      type: low_dim
+    image:
+      shape:
+      - 3
+      - 96
+      - 96
+      type: rgb
+
+# Policy configuration for DiT
+policy:
+  input_dim: 2        # action_dim
+  output_dim: 2       # action_dim  
+  horizon: 16         # pred_horizon
+  n_obs_steps: 2      # obs_horizon
+  cond_dim: 514      # observation condition dimension
+  obs_as_global_cond: true  # 添加这个参数，policy代码中有用到
+  
+  # Transformer architecture
+  n_layer: 8          # number of transformer layers
+  n_head: 8           # number of attention heads
+  n_emb: 512          # embedding dimension
+  p_drop_emb: 0.1     # embedding dropout
+  p_drop_attn: 0.1    # attention dropout
+  
+  # Attention settings
+  causal_attn: true      # use causal attention
+  time_as_cond: true     # use timestep as condition
+  obs_as_cond: true      # use observation as condition
+  n_cond_layers: 4       # number of condition encoder layers
+
+# Noise scheduler configuration
+noise_scheduler:
+  num_diffusion_steps: 100
+  beta_start: 0.0001
+  beta_end: 0.02
+  beta_schedule: "squaredcos_cap_v2"
+  clip_sample: false
+  prediction_type: "epsilon"
+
+# Training settings
+training:
+  num_epochs: 300
+  max_grad_norm: 1.0
+  dataset_path: "/media/z/data/mzq/code/diffusion_policy_z/data/pusht/pusht_cchi_v7_replay.zarr"
+  lr_final: 1e-7
+
+# Logging
+logging:
+  use_wandb: true
+  wandb_project: "diffusion_policy_pusht_dit"
+  run_name: "pusht_dit_transformer"
+  checkpoint_dir: "/media/z/data/mzq/code/diffusion_policy_z/checkpoints/pusht_dit"
+  save_every: 20
+
+# Evaluation settings
+eval:
+  num_episodes: 10
+  max_steps: 200
